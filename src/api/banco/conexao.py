@@ -1,9 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+import os
 
 from dotenv import load_dotenv
-
-import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
@@ -30,7 +29,7 @@ Base = declarative_base()
 
 def get_db():
     """
-    Dependency do FastAPI.
+    Fornece uma sessão do banco de dados para cada requisição.
     """
 
     db = SessionLocal()

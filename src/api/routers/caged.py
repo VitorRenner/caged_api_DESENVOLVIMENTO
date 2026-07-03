@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -8,6 +8,7 @@ from src.api.banco.conexao import get_db
 from src.api.banco import repositorio
 
 router = APIRouter()
+
 
 # Pydantic Models for request/response
 class CagedCreate(BaseModel):
@@ -28,6 +29,7 @@ class CagedCreate(BaseModel):
             }
         }
 
+
 class CagedResponse(BaseModel):
     id: int
     competencia: str
@@ -40,8 +42,10 @@ class CagedResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class CagedBulkCreate(BaseModel):
     registros: List[CagedCreate]
+
 
 @router.get("/", response_model=List[CagedResponse])
 def listar_caged(
@@ -57,6 +61,7 @@ def listar_caged(
     registros = repositorio.buscar_caged(db, competencia, setor, skip, limit)
     return [r.to_dict() for r in registros]
 
+
 @router.get("/{id}", response_model=CagedResponse)
 def buscar_caged_id(id: int, db: Session = Depends(get_db)):
     """
@@ -67,7 +72,12 @@ def buscar_caged_id(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Registro não encontrado")
     return registro.to_dict()
 
-@router.post("/", response_model=dict)
+
+@router.post(
+    "/",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED
+)
 def criar_caged(data: CagedCreate, db: Session = Depends(get_db)):
     """
     Create single CAGED record.
@@ -76,7 +86,12 @@ def criar_caged(data: CagedCreate, db: Session = Depends(get_db)):
     count = repositorio.upsert_caged(db, registro)
     return {"message": "Registro criado/atualizado", "count": count}
 
-@router.post("/bulk", response_model=dict)
+
+@router.post(
+    "/bulk",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED
+)
 def criar_bulk_caged(data: CagedBulkCreate, db: Session = Depends(get_db)):
     """
     Create/update multiple CAGED records at once.
@@ -84,6 +99,7 @@ def criar_bulk_caged(data: CagedBulkCreate, db: Session = Depends(get_db)):
     registros = [r.model_dump() for r in data.registros]
     count = repositorio.upsert_caged(db, registros)
     return {"message": f"{count} registros processados", "count": count}
+
 
 @router.delete("/{id}")
 def deletar_caged(id: int, db: Session = Depends(get_db)):
@@ -94,6 +110,7 @@ def deletar_caged(id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Registro não encontrado")
     return {"message": "Registro deletado com sucesso"}
+
 
 @router.get("/stats/resumo")
 def estatisticas(db: Session = Depends(get_db)):
@@ -111,4 +128,3 @@ def estatisticas(db: Session = Depends(get_db)):
             "DELETE /caged/{id}"
         ]
     }
-
