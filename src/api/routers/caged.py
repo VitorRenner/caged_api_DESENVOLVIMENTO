@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from src.api.banco.conexao import get_db
-from src.api.banco import repositorio
+from database import get_db
+from database import repositorio
 
 router = APIRouter()
 

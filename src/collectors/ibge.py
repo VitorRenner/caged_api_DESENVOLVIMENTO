@@ -1,7 +1,6 @@
-import requests
 import pandas as pd
 
-from src.api.coleta.base import BaseCollector
+from collectors import BaseCollector
 
 class IBGECollector(BaseCollector):
     """

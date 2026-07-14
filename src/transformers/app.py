@@ -3,8 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.routers import caged, ibge
-from src.api.scheduler.scheduler import (
+from transformers import caged, ibge
+from transformers import (
     iniciar_scheduler,
     parar_scheduler,
 )

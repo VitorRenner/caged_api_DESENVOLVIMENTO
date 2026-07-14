@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from src.api.services.atualizacao_caged import atualizar_caged
+from services import atualizar_caged
 
 scheduler = BackgroundScheduler()
 

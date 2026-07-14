@@ -7,7 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.sql import func
 
-from src.api.banco.conexao import Base
+from database import Base
 
 
 class CagedMovimentacao(Base):

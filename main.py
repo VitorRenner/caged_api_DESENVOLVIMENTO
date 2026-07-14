@@ -1,8 +1,8 @@
 import os
 import uvicorn
 
-from src.api.app import app
-from src.api.banco.conexao import Base, engine
+from transformers import app
+from database import Base, engine
 
 def init_database():
     Base.metadata.create_all(bind=engine)

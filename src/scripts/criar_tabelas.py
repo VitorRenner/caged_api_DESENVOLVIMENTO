@@ -1,9 +1,9 @@
-from src.api.banco.conexao import engine, Base
+from database import engine, Base
 
-from src.api.banco.models import CagedMovimentacao
+from database import CagedMovimentacao
 
 # Importa os models antes de criar
-from src.api.banco.models import CagedMovimentacao
+from database import CagedMovimentacao
 
 Base.metadata.create_all(bind=engine)
 
