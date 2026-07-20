@@ -1,9 +1,11 @@
+from typing import Any
+
 from sqlalchemy import (
     Column,
+    DateTime,
     Integer,
     String,
-    DateTime,
-    UniqueConstraint
+    UniqueConstraint,
 )
 from sqlalchemy.sql import func
 
@@ -11,6 +13,9 @@ from database import Base
 
 
 class CagedMovimentacao(Base):
+    """
+    Modelo da tabela que armazena as movimentações do CAGED.
+    """
 
     __tablename__ = "caged_movimentacao"
 
@@ -18,53 +23,56 @@ class CagedMovimentacao(Base):
         UniqueConstraint(
             "competencia",
             "setor",
-            name="uq_competencia_setor"
+            name="uq_competencia_setor",
         ),
     )
 
     id = Column(
         Integer,
         primary_key=True,
-        index=True
+        index=True,
     )
 
     competencia = Column(
         String(6),
         nullable=False,
-        index=True
+        index=True,
     )
 
     setor = Column(
         String(100),
         nullable=False,
-        index=True
+        index=True,
     )
 
     admissoes = Column(
         Integer,
         nullable=False,
-        default=0
+        default=0,
     )
 
     demissoes = Column(
         Integer,
         nullable=False,
-        default=0
+        default=0,
     )
 
     saldo = Column(
         Integer,
         nullable=False,
-        default=0
+        default=0,
     )
 
     atualizado_em = Column(
         DateTime(timezone=True),
         server_default=func.now(),
-        onupdate=func.now()
+        onupdate=func.now(),
     )
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Converte o modelo para um dicionário.
+        """
 
         return {
             "id": self.id,
@@ -77,5 +85,5 @@ class CagedMovimentacao(Base):
                 self.atualizado_em.isoformat()
                 if self.atualizado_em
                 else None
-            )
+            ),
         }

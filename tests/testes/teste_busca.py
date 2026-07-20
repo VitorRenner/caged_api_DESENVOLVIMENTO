@@ -1,5 +1,4 @@
-from database import SessionLocal
-from database import buscar_caged
+from database import SessionLocal, buscar_caged
 
 db = SessionLocal()
 

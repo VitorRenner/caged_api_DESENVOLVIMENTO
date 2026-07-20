@@ -1,32 +1,39 @@
+from typing import Any
+
 import pandas as pd
 
-def transformar_municipios(data: List[Dict]) -> pd.DataFrame:
-    """
-    Transform IBGE municipalities data to DataFrame.
 
-    Args:
-        data: JSON response from IBGE API
-
-    Returns:
-        Processed DataFrame
+def transformar_municipios(
+        dados: list[dict[str, Any]],
+) -> pd.DataFrame:
     """
-    if not data:
+    Converte os dados da API do IBGE para um DataFrame.
+    """
+
+    if not dados:
         return pd.DataFrame()
 
-    df = pd.DataFrame(data)
-    return df
+    return pd.DataFrame(dados)
 
-def extrair_joinville(data: List[Dict]) -> Dict:
+
+def buscar_municipio(
+        dados: list[dict[str, Any]],
+        nome: str = "Joinville",
+) -> dict[str, Any] | None:
     """
-    Extract Joinville data from municipalities list.
-
-    Args:
-        data: List of municipalities
-
-    Returns:
-        Joinville data dictionary or empty dict
+    Procura um município pelo nome.
     """
-    for municipio in data:
-        if municipio.get('nome', '').lower() == 'joinville':
+
+    nome = nome.strip().lower()
+
+    for municipio in dados:
+
+        if (
+                municipio.get("nome", "")
+                        .strip()
+                        .lower()
+                == nome
+        ):
             return municipio
-    return {}
+
+    return None

@@ -1,89 +1,141 @@
+from typing import TypedDict
+
 import pandas as pd
 
-def transformar_caged(df: pd.DataFrame) -> List[Dict]:
-    """
-    Transform raw CAGED DataFrame to database format.
+COLUNAS_OBRIGATORIAS = (
+    "competencia",
+    "setor",
+    "admissoes",
+    "demissoes",
+    "saldo",
+)
 
-    Args:
-        df: Raw DataFrame from CAGED files
 
-    Returns:
-        List of dictionaries ready for database insertion
+class RegistroCaged(TypedDict):
+    competencia: str
+    setor: str
+    admissoes: int
+    demissoes: int
+    saldo: int
+
+
+def transformar_caged(
+        df: pd.DataFrame,
+) -> list[RegistroCaged]:
     """
+    Prepara os dados do CAGED para salvar no banco.
+    """
+
     if df.empty:
         return []
 
-    # Expected columns mapping (adjust based on actual data format)
-    column_mapping = {
-        'competencia': 'competencia',
-        'setor': 'setor',
-        'admissoes': 'admissoes',
-        'demissoes': 'demissoes',
-        'saldo': 'saldo'
+    colunas = {
+        "competencia": "competencia",
+        "setor": "setor",
+        "admissoes": "admissoes",
+        "demissoes": "demissoes",
+        "saldo": "saldo",
     }
 
-    # Rename columns if necessary
-    for old, new in column_mapping.items():
-        if old in df.columns:
-            df = df.rename(columns={old: new})
-
-    # Ensure required columns exist
-    required = ['competencia', 'setor', 'admissoes', 'demissoes', 'saldo']
-    for col in required:
-        if col not in df.columns:
-            df[col] = 0
-
-    # Convert types
-    df['admissoes'] = pd.to_numeric(df['admissoes'], errors='coerce').fillna(0).astype(int)
-    df['demissoes'] = pd.to_numeric(df['demissoes'], errors='coerce').fillna(0).astype(int)
-    df['saldo'] = pd.to_numeric(df['saldo'], errors='coerce').fillna(0).astype(int)
-    df['competencia'] = df['competencia'].astype(str).str[:6]
-    df['setor'] = df['setor'].astype(str).str[:100]
-
-    # Convert to list of dicts
-    registros = df[required].to_dict('records')
-
-    return registros
-
-def validar_dados(registros: List[Dict]) -> tuple:
-    """
-    Validate CAGED data before insertion.
-
-    Args:
-        registros: List of record dictionaries
-
-    Returns:
-        Tuple of (valid_records, invalid_records)
-    """
-    valid = []
-    invalid = []
-
-    for idx, reg in enumerate(registros):
-        errors = []
-
-        # Check required fields
-        if not reg.get('competencia') or len(str(reg['competencia'])) != 6:
-            errors.append("competencia must be 6 characters (YYYYMM)")
-
-        if not reg.get('setor'):
-            errors.append("setor is required")
-
-        # Check numeric fields
-        for field in ['admissoes', 'demissoes', 'saldo']:
-            if not isinstance(reg.get(field), (int, float)):
-                errors.append(f"{field} must be numeric")
-
-        if errors:
-            reg['_errors'] = errors
-            reg['_index'] = idx
-            invalid.append(reg)
-        else:
-            valid.append(reg)
-
-    return valid, invalid
-
-    def transformar_caged(dados):
-        return {
-            "Município": "Joinville",
-            "saldo": saldo
+    df = df.rename(
+        columns={
+            antiga: nova
+            for antiga, nova in colunas.items()
+            if antiga in df.columns
         }
+    )
+
+    for coluna in COLUNAS_OBRIGATORIAS:
+
+        if coluna not in df.columns:
+            df[coluna] = 0
+
+    for coluna in (
+            "admissoes",
+            "demissoes",
+            "saldo",
+    ):
+
+        df[coluna] = (
+            pd.to_numeric(
+                df[coluna],
+                errors="coerce",
+            )
+            .fillna(0)
+            .astype(int)
+        )
+
+    df["competencia"] = (
+        df["competencia"]
+        .astype(str)
+        .str[:6]
+    )
+
+    df["setor"] = (
+        df["setor"]
+        .astype(str)
+        .str[:100]
+    )
+
+    return df[
+        list(COLUNAS_OBRIGATORIAS)
+    ].to_dict("records")
+
+
+def validar_dados(
+        registros: list[RegistroCaged],
+) -> tuple[
+    list[RegistroCaged],
+    list[dict],
+]:
+    """
+    Separa os registros válidos dos inválidos.
+    """
+
+    validos = []
+    invalidos = []
+
+    for indice, registro in enumerate(registros):
+
+        erros = []
+
+        if (
+                not registro.get("competencia")
+                or len(str(registro["competencia"])) != 6
+        ):
+            erros.append(
+                "Competência deve estar no formato YYYYMM."
+            )
+
+        if not registro.get("setor"):
+            erros.append(
+                "Setor não informado."
+            )
+
+        for campo in (
+                "admissoes",
+                "demissoes",
+                "saldo",
+        ):
+
+            if not isinstance(
+                    registro.get(campo),
+                    (int, float),
+            ):
+                erros.append(
+                    f"{campo} deve ser numérico."
+                )
+
+        if erros:
+
+            registro_invalido = registro.copy()
+            registro_invalido["_erros"] = erros
+            registro_invalido["_linha"] = indice
+
+            invalidos.append(registro_invalido)
+
+        else:
+
+            validos.append(registro)
+
+    return validos, invalidos

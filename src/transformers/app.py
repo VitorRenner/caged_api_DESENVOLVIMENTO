@@ -3,17 +3,17 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from transformers import caged, ibge
-from transformers import (
-    iniciar_scheduler,
-    parar_scheduler,
-)
+from transformers import caged, ibge, iniciar_scheduler, parar_scheduler
+
+API_TITLE = "CAGED API - Joinville"
+API_DESCRIPTION = "API para dados de emprego e desemprego de Joinville/SC"
+API_VERSION = "1.0.0"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Executa ações quando a API inicia e quando é encerrada.
+    Executa ações na inicialização e no encerramento da aplicação.
     """
     iniciar_scheduler()
     yield
@@ -21,13 +21,12 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="CAGED API - Joinville",
-    description="API para dados de emprego e desemprego de Joinville/SC",
-    version="1.0.0",
+    title=API_TITLE,
+    description=API_DESCRIPTION,
+    version=API_VERSION,
     lifespan=lifespan,
 )
 
-# CORS - Allow all origins for development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -39,15 +38,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(caged.router, prefix="/caged", tags=["CAGED"])
 app.include_router(ibge.router, prefix="/ibge", tags=["IBGE"])
 
 
-@app.get("/")
-def root():
+@app.get("/", summary="Informações da API")
+def root() -> dict:
+    """
+    Retorna informações básicas da API.
+    """
     return {
-        "message": "CAGED API - Joinville",
+        "name": API_TITLE,
+        "version": API_VERSION,
         "docs": "/docs",
         "endpoints": {
             "caged": "/caged",
@@ -56,6 +58,14 @@ def root():
     }
 
 
-@app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+@app.get("/health", summary="Status da aplicação")
+def health_check() -> dict:
+    """
+    Verifica se a aplicação está em execução.
+    """
+    return {
+        "status": "healthy",
+        "application": API_TITLE,
+        "version": API_VERSION,
+        "scheduler": "running",
+    }

@@ -1,9 +1,4 @@
-from database import SessionLocal
-from database import repositorio
-
-
-from database import SessionLocal
-from database import repositorio
+from database import SessionLocal, repositorio
 
 db = SessionLocal()
 

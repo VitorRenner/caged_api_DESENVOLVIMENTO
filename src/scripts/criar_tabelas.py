@@ -1,9 +1,6 @@
-from database import engine, Base
-
-from database import CagedMovimentacao
+from database import Base, engine
 
 # Importa os models antes de criar
-from database import CagedMovimentacao
 
 Base.metadata.create_all(bind=engine)
 

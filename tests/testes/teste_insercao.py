@@ -1,5 +1,4 @@
-from database import SessionLocal
-from database import CagedMovimentacao
+from database import CagedMovimentacao, SessionLocal
 
 db = SessionLocal()
 

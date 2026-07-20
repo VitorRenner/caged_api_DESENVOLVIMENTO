@@ -1,18 +1,30 @@
 from fastapi import APIRouter
 
-from database import get_db
-
 router = APIRouter()
 
+
 @router.get("/")
-def ibge_root():
-    return {"message": "IBGE endpoints - Implementar conforme necessidade"}
+def status_ibge() -> dict:
+    """
+    Retorna informações sobre os endpoints do IBGE.
+    """
+    return {
+        "message": "Endpoints do IBGE.",
+        "status": "Em desenvolvimento.",
+    }
+
 
 @router.get("/municipios")
-def listar_municipios():
-    """Placeholder for IBGE municipalities data"""
+def listar_municipios() -> dict:
+    """
+    Lista os municípios disponíveis.
+    """
     return {
         "municipios": [
-            {"id": 4209102, "nome": "Joinville", "estado": "SC"}
+            {
+                "id": 4209102,
+                "nome": "Joinville",
+                "estado": "SC",
+            }
         ]
     }

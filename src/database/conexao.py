@@ -2,36 +2,36 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
+# Carrega as variáveis do arquivo .env
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-if not DATABASE_URL:
+if DATABASE_URL is None:
     raise ValueError(
-        "DATABASE_URL não encontrada no arquivo .env"
+        "A variável DATABASE_URL não foi encontrada no arquivo .env."
     )
 
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(
+    bind=engine,
     autocommit=False,
     autoflush=False,
-    bind=engine
 )
 
 Base = declarative_base()
 
 
-def get_db():
+def get_db() -> Session:
     """
-    Fornece uma sessão do banco de dados para cada requisição.
+    Cria uma sessão do banco para a requisição e fecha quando terminar.
     """
-
     db = SessionLocal()
 
     try:

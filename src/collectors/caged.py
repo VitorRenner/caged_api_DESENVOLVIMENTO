@@ -1,34 +1,55 @@
+import logging
 import os
 
 import pandas as pd
 
 from collectors import BaseCollector
 
+BASE_URL = "https://portaldatransparencia.gov.br"
+CODIGO_JOINVILLE = 4209102
+
+logger = logging.getLogger(__name__)
+
+
 class CagedCollector(BaseCollector):
+    """
+    Responsável por coletar os dados do CAGED.
+    """
 
-    def __init__(self):
-
+    def __init__(self) -> None:
         super().__init__(
-            base_url="https://portaldatransparencia.gov.br"
+            base_url=BASE_URL,
         )
 
-        self.download_folder = "data/caged"
+        self.download_folder = os.path.join(
+            "data",
+            "caged",
+        )
 
         os.makedirs(
             self.download_folder,
-            exist_ok=True
+            exist_ok=True,
         )
 
     def coletar(
             self,
             ano: int = 2024,
-            mes: int = 1
+            mes: int = 1,
     ) -> pd.DataFrame:
+        """
+        Coleta os dados do CAGED.
+        """
 
-        print(
-            f"Coletando dados CAGED {ano}/{mes:02d}"
+        if not 1 <= mes <= 12:
+            raise ValueError("O mês deve estar entre 1 e 12.")
+
+        logger.info(
+            "Coletando dados do CAGED - %02d/%d",
+            mes,
+            ano,
         )
 
+        # Aqui ficará a lógica de download do CAGED.
         return pd.DataFrame(
             columns=[
                 "competencia",
@@ -36,33 +57,29 @@ class CagedCollector(BaseCollector):
                 "setor",
                 "admissoes",
                 "demissoes",
-                "saldo"
+                "saldo",
             ]
         )
 
     def processar_arquivo_local(
             self,
-            file_path: str
+            caminho_arquivo: str,
+            codigo_municipio: int = CODIGO_JOINVILLE,
     ) -> pd.DataFrame:
+        """
+        Lê um arquivo local e retorna os dados do município informado.
+        """
 
-        if not os.path.exists(
-                file_path
-        ):
-
+        if not os.path.exists(caminho_arquivo):
             raise FileNotFoundError(
-                f"Arquivo não encontrado: {file_path}"
+                f"Arquivo não encontrado: {caminho_arquivo}"
             )
 
-        df = self.read_excel(
-            file_path
-        )
+        df = self.read_excel(caminho_arquivo)
 
-        if (
-                not df.empty
-                and "municipio" in df.columns
-        ):
+        if not df.empty and "municipio" in df.columns:
             df = df[
-                df["municipio"] == 4209102
+                df["municipio"] == codigo_municipio
                 ]
 
         return df

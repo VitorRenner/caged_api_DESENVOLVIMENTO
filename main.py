@@ -1,17 +1,27 @@
 import os
+
 import uvicorn
 
-from transformers import app
 from database import Base, engine
+from transformers import app
 
-def init_database():
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", 8000))
+
+
+def initialize_database() -> None:
+    """
+    Cria todas as tabelas definidas nos modelos do SQLAlchemy,
+    caso ainda não existam.
+    """
     Base.metadata.create_all(bind=engine)
 
+
 if __name__ == "__main__":
-    init_database()
+    initialize_database()
 
     uvicorn.run(
         app,
-        host=os.getenv("API_HOST", "0.0.0.0"),
-        port=int(os.getenv("API_PORT", 8000)),
+        host=API_HOST,
+        port=API_PORT,
     )
