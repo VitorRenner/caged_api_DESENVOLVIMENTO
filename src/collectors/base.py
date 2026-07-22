@@ -3,6 +3,7 @@ from typing import Any
 
 import pandas as pd
 import requests
+from pandas.errors import ParserError
 
 
 class BaseCollector(ABC):
@@ -10,15 +11,18 @@ class BaseCollector(ABC):
     Classe base para todos os coletores do projeto.
     """
 
+    DEFAULT_TIMEOUT = 30
+
     def __init__(
             self,
             base_url: str,
+            session: requests.Session | None = None,
     ) -> None:
         """
         Inicializa o coletor.
         """
         self.base_url = base_url
-        self.session = requests.Session()
+        self.session = session or requests.Session()
 
     @abstractmethod
     def coletar(
@@ -42,7 +46,7 @@ class BaseCollector(ABC):
             response = self.session.get(
                 url,
                 stream=True,
-                timeout=30,
+                timeout=self.DEFAULT_TIMEOUT,
             )
 
             response.raise_for_status()
@@ -51,7 +55,6 @@ class BaseCollector(ABC):
                     caminho_arquivo,
                     "wb",
             ) as arquivo:
-
                 for chunk in response.iter_content(
                         chunk_size=8192,
                 ):
@@ -60,7 +63,7 @@ class BaseCollector(ABC):
 
             return True
 
-        except Exception as erro:
+        except requests.RequestException as erro:
             raise RuntimeError(
                 f"Erro ao baixar arquivo: {erro}"
             ) from erro
@@ -79,7 +82,12 @@ class BaseCollector(ABC):
                 **kwargs,
             )
 
-        except Exception as erro:
+        except (
+                FileNotFoundError,
+                PermissionError,
+                ValueError,
+                ParserError,
+        ) as erro:
             raise RuntimeError(
                 f"Erro ao ler o arquivo Excel: {erro}"
             ) from erro

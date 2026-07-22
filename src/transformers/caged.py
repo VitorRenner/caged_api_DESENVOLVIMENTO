@@ -10,6 +10,14 @@ COLUNAS_OBRIGATORIAS = (
     "saldo",
 )
 
+MAPEAMENTO_COLUNAS = {
+    "competencia": "competencia",
+    "setor": "setor",
+    "admissoes": "admissoes",
+    "demissoes": "demissoes",
+    "saldo": "saldo",
+}
+
 
 class RegistroCaged(TypedDict):
     competencia: str
@@ -29,24 +37,15 @@ def transformar_caged(
     if df.empty:
         return []
 
-    colunas = {
-        "competencia": "competencia",
-        "setor": "setor",
-        "admissoes": "admissoes",
-        "demissoes": "demissoes",
-        "saldo": "saldo",
-    }
-
     df = df.rename(
         columns={
             antiga: nova
-            for antiga, nova in colunas.items()
+            for antiga, nova in MAPEAMENTO_COLUNAS.items()
             if antiga in df.columns
         }
     )
 
     for coluna in COLUNAS_OBRIGATORIAS:
-
         if coluna not in df.columns:
             df[coluna] = 0
 
@@ -55,7 +54,6 @@ def transformar_caged(
             "demissoes",
             "saldo",
     ):
-
         df[coluna] = (
             pd.to_numeric(
                 df[coluna],
@@ -79,7 +77,7 @@ def transformar_caged(
 
     return df[
         list(COLUNAS_OBRIGATORIAS)
-    ].to_dict("records")
+    ].to_dict(orient="records")
 
 
 def validar_dados(
@@ -92,16 +90,18 @@ def validar_dados(
     Separa os registros válidos dos inválidos.
     """
 
-    validos = []
-    invalidos = []
+    registros_validos = []
+    registros_invalidos = []
 
     for indice, registro in enumerate(registros):
 
         erros = []
 
+        competencia = str(registro["competencia"])
+
         if (
-                not registro.get("competencia")
-                or len(str(registro["competencia"])) != 6
+                len(competencia) != 6
+                or not competencia.isdigit()
         ):
             erros.append(
                 "Competência deve estar no formato YYYYMM."
@@ -117,25 +117,27 @@ def validar_dados(
                 "demissoes",
                 "saldo",
         ):
+            valor = registro.get(campo)
 
-            if not isinstance(
-                    registro.get(campo),
-                    (int, float),
-            ):
+            if not isinstance(valor, int):
                 erros.append(
                     f"{campo} deve ser numérico."
                 )
+                continue
+
+            if valor < 0:
+                erros.append(
+                    f"{campo} não pode ser negativo."
+                )
 
         if erros:
-
             registro_invalido = registro.copy()
             registro_invalido["_erros"] = erros
             registro_invalido["_linha"] = indice
 
-            invalidos.append(registro_invalido)
+            registros_invalidos.append(registro_invalido)
 
         else:
+            registros_validos.append(registro)
 
-            validos.append(registro)
-
-    return validos, invalidos
+    return registros_validos, registros_invalidos

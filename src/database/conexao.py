@@ -1,28 +1,25 @@
-import os
+import logging
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-# Carrega as variáveis do arquivo .env
-load_dotenv()
+from core.settings import settings
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+logger = logging.getLogger(__name__)
 
-if DATABASE_URL is None:
-    raise ValueError(
-        "A variável DATABASE_URL não foi encontrada no arquivo .env."
-    )
+logger.info("Inicializando conexão com o banco de dados.")
 
 engine = create_engine(
-    DATABASE_URL,
+    settings.DATABASE_URL,
     pool_pre_ping=True,
+    future=True,
 )
 
 SessionLocal = sessionmaker(
     bind=engine,
     autocommit=False,
     autoflush=False,
+    expire_on_commit=False,
 )
 
 Base = declarative_base()
@@ -30,8 +27,10 @@ Base = declarative_base()
 
 def get_db() -> Session:
     """
-    Cria uma sessão do banco para a requisição e fecha quando terminar.
+    Cria uma sessão do banco de dados para a requisição
+    e garante seu fechamento ao final do uso.
     """
+
     db = SessionLocal()
 
     try:

@@ -1,7 +1,13 @@
+import logging
+
+import requests
+
 from collectors import BaseCollector
 
 BASE_URL = "https://servicodados.ibge.gov.br/api/v1"
 CODIGO_JOINVILLE = 4209102
+
+logger = logging.getLogger(__name__)
 
 
 class IBGECollector(BaseCollector):
@@ -22,17 +28,29 @@ class IBGECollector(BaseCollector):
         Realiza uma requisição GET e retorna o JSON da resposta.
         """
 
+        logger.info(
+            "Realizando requisição para: %s",
+            url,
+        )
+
         try:
             response = self.session.get(
                 url,
-                timeout=30,
+                timeout=self.DEFAULT_TIMEOUT,
             )
 
             response.raise_for_status()
 
+            logger.info(
+                "Requisição realizada com sucesso."
+            )
+
             return response.json()
 
-        except Exception as erro:
+        except (
+                requests.RequestException,
+                ValueError,
+        ) as erro:
             raise RuntimeError(
                 f"Erro ao acessar a API do IBGE: {erro}"
             ) from erro

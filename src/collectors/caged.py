@@ -1,5 +1,5 @@
 import logging
-import os
+from pathlib import Path
 
 import pandas as pd
 
@@ -7,6 +7,7 @@ from collectors import BaseCollector
 
 BASE_URL = "https://portaldatransparencia.gov.br"
 CODIGO_JOINVILLE = 4209102
+ANO_INICIAL_CAGED = 2002
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +22,9 @@ class CagedCollector(BaseCollector):
             base_url=BASE_URL,
         )
 
-        self.download_folder = os.path.join(
-            "data",
-            "caged",
-        )
-
-        os.makedirs(
-            self.download_folder,
+        self.download_dir = Path("data") / "caged"
+        self.download_dir.mkdir(
+            parents=True,
             exist_ok=True,
         )
 
@@ -40,8 +37,15 @@ class CagedCollector(BaseCollector):
         Coleta os dados do CAGED.
         """
 
+        if ano < ANO_INICIAL_CAGED:
+            raise ValueError(
+                f"O ano deve ser maior ou igual a {ANO_INICIAL_CAGED}."
+            )
+
         if not 1 <= mes <= 12:
-            raise ValueError("O mês deve estar entre 1 e 12.")
+            raise ValueError(
+                "O mês deve estar entre 1 e 12."
+            )
 
         logger.info(
             "Coletando dados do CAGED - %02d/%d",
@@ -50,6 +54,7 @@ class CagedCollector(BaseCollector):
         )
 
         # Aqui ficará a lógica de download do CAGED.
+
         return pd.DataFrame(
             columns=[
                 "competencia",
@@ -70,16 +75,36 @@ class CagedCollector(BaseCollector):
         Lê um arquivo local e retorna os dados do município informado.
         """
 
-        if not os.path.exists(caminho_arquivo):
+        logger.info(
+            "Processando arquivo local: %s",
+            caminho_arquivo,
+        )
+
+        caminho = Path(caminho_arquivo)
+
+        if not caminho.exists():
             raise FileNotFoundError(
-                f"Arquivo não encontrado: {caminho_arquivo}"
+                f"Arquivo não encontrado: {caminho}"
             )
 
-        df = self.read_excel(caminho_arquivo)
+        df = self.read_excel(
+            str(caminho),
+        )
 
-        if not df.empty and "municipio" in df.columns:
+        if "municipio" not in df.columns:
+            raise ValueError(
+                "A coluna 'municipio' não foi encontrada no arquivo."
+            )
+
+        if not df.empty:
             df = df[
                 df["municipio"] == codigo_municipio
                 ]
+
+        logger.info(
+            "Foram encontrados %d registros para o município %d.",
+            len(df),
+            codigo_municipio,
+        )
 
         return df

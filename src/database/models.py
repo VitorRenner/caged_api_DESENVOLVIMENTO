@@ -63,8 +63,15 @@ class CagedMovimentacao(Base):
         default=0,
     )
 
+    criado_em = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
     atualizado_em = Column(
         DateTime(timezone=True),
+        nullable=False,
         server_default=func.now(),
         onupdate=func.now(),
     )
@@ -81,9 +88,21 @@ class CagedMovimentacao(Base):
             "admissoes": self.admissoes,
             "demissoes": self.demissoes,
             "saldo": self.saldo,
+            "criado_em": (
+                self.criado_em.isoformat()
+                if self.criado_em
+                else None
+            ),
             "atualizado_em": (
                 self.atualizado_em.isoformat()
                 if self.atualizado_em
                 else None
             ),
         }
+
+    def __repr__(self) -> str:
+        return (
+            f"CagedMovimentacao("
+            f"competencia='{self.competencia}', "
+            f"setor='{self.setor}')"
+        )
