@@ -1,19 +1,13 @@
 import logging
 import sys
 
-
-LOG_FORMAT = (
-    "%(asctime)s | "
-    "%(levelname)-8s | "
-    "%(name)s | "
-    "%(message)s"
-)
+LOG_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 def configurar_logging(
-        nivel: int = logging.INFO,
+    nivel: int = logging.INFO,
 ) -> None:
     """
     Configura o sistema de logs da aplicação.

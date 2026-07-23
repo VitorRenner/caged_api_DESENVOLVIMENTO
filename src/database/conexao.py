@@ -3,16 +3,13 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-from core.settings import settings
+from src.core.settings import settings
 
 logger = logging.getLogger(__name__)
-
-logger.info("Inicializando conexão com o banco de dados.")
 
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,
-    future=True,
 )
 
 SessionLocal = sessionmaker(
@@ -27,14 +24,17 @@ Base = declarative_base()
 
 def get_db() -> Session:
     """
-    Cria uma sessão do banco de dados para a requisição
-    e garante seu fechamento ao final do uso.
+    Cria uma sessão do banco e garante o fechamento.
     """
 
     db = SessionLocal()
 
     try:
         yield db
+
+    except Exception:
+        db.rollback()
+        raise
 
     finally:
         db.close()

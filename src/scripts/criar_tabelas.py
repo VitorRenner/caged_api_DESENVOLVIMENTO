@@ -1,6 +1,6 @@
-from database import Base, engine
-
-# Importa os models antes de criar
+# Importa os modelos para registrá-los no SQLAlchemy.
+from src.database import models  # noqa: F401
+from src.database.conexao import Base, engine
 
 Base.metadata.create_all(bind=engine)
 

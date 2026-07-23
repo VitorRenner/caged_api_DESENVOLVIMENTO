@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from transformers import caged, ibge, iniciar_scheduler, parar_scheduler
+from src.api.routers import caged, ibge
+from src.scheduler.scheduler import iniciar_scheduler, parar_scheduler
 
 API_TITLE = "CAGED API - Joinville"
 API_DESCRIPTION = "API para dados de emprego e desemprego de Joinville/SC"
@@ -27,6 +28,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -38,8 +40,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(caged.router, prefix="/caged", tags=["CAGED"])
-app.include_router(ibge.router, prefix="/ibge", tags=["IBGE"])
+
+app.include_router(
+    caged.router,
+    prefix="/caged",
+    tags=["CAGED"],
+)
+
+app.include_router(
+    ibge.router,
+    prefix="/ibge",
+    tags=["IBGE"],
+)
 
 
 @app.get("/", summary="Informações da API")

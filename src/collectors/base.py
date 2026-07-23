@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -11,12 +12,13 @@ class BaseCollector(ABC):
     Classe base para todos os coletores do projeto.
     """
 
-    DEFAULT_TIMEOUT = 30
+    REQUEST_TIMEOUT_SECONDS = 30
+    DOWNLOAD_CHUNK_SIZE = 8192
 
     def __init__(
-            self,
-            base_url: str,
-            session: requests.Session | None = None,
+        self,
+        base_url: str,
+        session: requests.Session | None = None,
     ) -> None:
         """
         Inicializa o coletor.
@@ -26,8 +28,8 @@ class BaseCollector(ABC):
 
     @abstractmethod
     def coletar(
-            self,
-            **kwargs,
+        self,
+        **kwargs: Any,
     ) -> Any:
         """
         Método que deve ser implementado pelos coletores.
@@ -35,9 +37,9 @@ class BaseCollector(ABC):
         raise NotImplementedError
 
     def download_file(
-            self,
-            url: str,
-            caminho_arquivo: str,
+        self,
+        url: str,
+        caminho_arquivo: str,
     ) -> bool:
         """
         Faz o download de um arquivo.
@@ -46,17 +48,13 @@ class BaseCollector(ABC):
             response = self.session.get(
                 url,
                 stream=True,
-                timeout=self.DEFAULT_TIMEOUT,
+                timeout=self.REQUEST_TIMEOUT_SECONDS,
             )
-
             response.raise_for_status()
 
-            with open(
-                    caminho_arquivo,
-                    "wb",
-            ) as arquivo:
+            with Path(caminho_arquivo).open("wb") as arquivo:
                 for chunk in response.iter_content(
-                        chunk_size=8192,
+                    chunk_size=self.DOWNLOAD_CHUNK_SIZE,
                 ):
                     if chunk:
                         arquivo.write(chunk)
@@ -64,14 +62,12 @@ class BaseCollector(ABC):
             return True
 
         except requests.RequestException as erro:
-            raise RuntimeError(
-                f"Erro ao baixar arquivo: {erro}"
-            ) from erro
+            raise RuntimeError(f"Erro ao baixar arquivo: {erro}") from erro
 
     def read_excel(
-            self,
-            caminho_arquivo: str,
-            **kwargs,
+        self,
+        caminho_arquivo: str,
+        **kwargs: Any,
     ) -> pd.DataFrame:
         """
         Lê um arquivo Excel.
@@ -83,11 +79,9 @@ class BaseCollector(ABC):
             )
 
         except (
-                FileNotFoundError,
-                PermissionError,
-                ValueError,
-                ParserError,
+            FileNotFoundError,
+            PermissionError,
+            ValueError,
+            ParserError,
         ) as erro:
-            raise RuntimeError(
-                f"Erro ao ler o arquivo Excel: {erro}"
-            ) from erro
+            raise RuntimeError(f"Erro ao ler o arquivo Excel: {erro}") from erro

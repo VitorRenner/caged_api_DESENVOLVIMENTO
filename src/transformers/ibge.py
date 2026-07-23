@@ -4,10 +4,10 @@ import pandas as pd
 
 
 def transformar_municipios(
-        dados: list[dict[str, Any]],
+    dados: list[dict[str, Any]],
 ) -> pd.DataFrame:
     """
-    Converte os dados da API do IBGE para um DataFrame.
+    Converte dados de municípios do IBGE para DataFrame.
     """
 
     if not dados:
@@ -17,23 +17,19 @@ def transformar_municipios(
 
 
 def buscar_municipio(
-        dados: list[dict[str, Any]],
-        nome: str = "Joinville",
+    dados: list[dict[str, Any]],
+    nome: str = "Joinville",
 ) -> dict[str, Any] | None:
     """
-    Procura um município pelo nome.
+    Busca um município pelo nome informado.
     """
 
-    nome = nome.strip().lower()
+    nome_normalizado = nome.strip().lower()
 
     for municipio in dados:
+        nome_municipio = municipio.get("nome", "").strip().lower()
 
-        if (
-                municipio.get("nome", "")
-                        .strip()
-                        .lower()
-                == nome
-        ):
+        if nome_municipio == nome_normalizado:
             return municipio
 
     return None

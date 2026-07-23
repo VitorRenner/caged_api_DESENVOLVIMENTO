@@ -29,23 +29,19 @@ class CagedCollector(BaseCollector):
         )
 
     def coletar(
-            self,
-            ano: int = 2024,
-            mes: int = 1,
+        self,
+        ano: int = 2024,
+        mes: int = 1,
     ) -> pd.DataFrame:
         """
         Coleta os dados do CAGED.
         """
 
         if ano < ANO_INICIAL_CAGED:
-            raise ValueError(
-                f"O ano deve ser maior ou igual a {ANO_INICIAL_CAGED}."
-            )
+            raise ValueError(f"O ano deve ser maior ou igual a {ANO_INICIAL_CAGED}.")
 
         if not 1 <= mes <= 12:
-            raise ValueError(
-                "O mês deve estar entre 1 e 12."
-            )
+            raise ValueError("O mês deve estar entre 1 e 12.")
 
         logger.info(
             "Coletando dados do CAGED - %02d/%d",
@@ -63,13 +59,13 @@ class CagedCollector(BaseCollector):
                 "admissoes",
                 "demissoes",
                 "saldo",
-            ]
+            ],
         )
 
     def processar_arquivo_local(
-            self,
-            caminho_arquivo: str,
-            codigo_municipio: int = CODIGO_JOINVILLE,
+        self,
+        caminho_arquivo: str,
+        codigo_municipio: int = CODIGO_JOINVILLE,
     ) -> pd.DataFrame:
         """
         Lê um arquivo local e retorna os dados do município informado.
@@ -83,23 +79,15 @@ class CagedCollector(BaseCollector):
         caminho = Path(caminho_arquivo)
 
         if not caminho.exists():
-            raise FileNotFoundError(
-                f"Arquivo não encontrado: {caminho}"
-            )
+            raise FileNotFoundError(f"Arquivo não encontrado: {caminho}")
 
-        df = self.read_excel(
-            str(caminho),
-        )
+        df = self.read_excel(str(caminho))
 
         if "municipio" not in df.columns:
-            raise ValueError(
-                "A coluna 'municipio' não foi encontrada no arquivo."
-            )
+            raise ValueError("A coluna 'municipio' não foi encontrada no arquivo.")
 
         if not df.empty:
-            df = df[
-                df["municipio"] == codigo_municipio
-                ]
+            df = df[df["municipio"] == codigo_municipio]
 
         logger.info(
             "Foram encontrados %d registros para o município %d.",

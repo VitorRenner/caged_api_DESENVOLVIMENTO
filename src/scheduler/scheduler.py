@@ -2,11 +2,10 @@ import logging
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from services import atualizar_caged
+from src.core.settings import settings
+from src.services import atualizar_caged
 
 logger = logging.getLogger(__name__)
-
-SCHEDULER_INTERVAL_SECONDS = 30
 
 scheduler = BackgroundScheduler()
 
@@ -17,16 +16,14 @@ def iniciar_scheduler() -> None:
     """
 
     if scheduler.running:
-        logger.info(
-            "O scheduler já está em execução."
-        )
+        logger.info("O scheduler já está em execução.")
         return
 
     try:
         scheduler.add_job(
             atualizar_caged,
             trigger="interval",
-            seconds=SCHEDULER_INTERVAL_SECONDS,
+            seconds=settings.SCHEDULER_INTERVAL_SECONDS,
             id="atualizacao_caged",
             name="Atualização automática do CAGED",
             replace_existing=True,
@@ -34,14 +31,10 @@ def iniciar_scheduler() -> None:
 
         scheduler.start()
 
-        logger.info(
-            "Scheduler iniciado com sucesso."
-        )
+        logger.info("Scheduler iniciado com sucesso.")
 
     except Exception:
-        logger.exception(
-            "Erro ao iniciar o scheduler."
-        )
+        logger.exception("Erro ao iniciar o scheduler.")
         raise
 
 
@@ -51,9 +44,7 @@ def parar_scheduler() -> None:
     """
 
     if not scheduler.running:
-        logger.info(
-            "O scheduler já está parado."
-        )
+        logger.info("O scheduler já está parado.")
         return
 
     try:
@@ -61,12 +52,8 @@ def parar_scheduler() -> None:
             wait=False,
         )
 
-        logger.info(
-            "Scheduler encerrado com sucesso."
-        )
+        logger.info("Scheduler encerrado com sucesso.")
 
     except Exception:
-        logger.exception(
-            "Erro ao encerrar o scheduler."
-        )
+        logger.exception("Erro ao encerrar o scheduler.")
         raise

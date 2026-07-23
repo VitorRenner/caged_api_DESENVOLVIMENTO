@@ -20,6 +20,10 @@ MAPEAMENTO_COLUNAS = {
 
 
 class RegistroCaged(TypedDict):
+    """
+    Estrutura esperada de um registro do CAGED.
+    """
+
     competencia: str
     setor: str
     admissoes: int
@@ -28,10 +32,10 @@ class RegistroCaged(TypedDict):
 
 
 def transformar_caged(
-        df: pd.DataFrame,
+    df: pd.DataFrame,
 ) -> list[RegistroCaged]:
     """
-    Prepara os dados do CAGED para salvar no banco.
+    Padroniza os dados do CAGED para persistência no banco.
     """
 
     if df.empty:
@@ -50,9 +54,9 @@ def transformar_caged(
             df[coluna] = 0
 
     for coluna in (
-            "admissoes",
-            "demissoes",
-            "saldo",
+        "admissoes",
+        "demissoes",
+        "saldo",
     ):
         df[coluna] = (
             pd.to_numeric(
@@ -63,75 +67,54 @@ def transformar_caged(
             .astype(int)
         )
 
-    df["competencia"] = (
-        df["competencia"]
-        .astype(str)
-        .str[:6]
-    )
+    df["competencia"] = df["competencia"].astype(str).str[:6]
 
-    df["setor"] = (
-        df["setor"]
-        .astype(str)
-        .str[:100]
-    )
+    df["setor"] = df["setor"].astype(str).str[:100]
 
-    return df[
-        list(COLUNAS_OBRIGATORIAS)
-    ].to_dict(orient="records")
+    return df[list(COLUNAS_OBRIGATORIAS)].to_dict(orient="records")
 
 
 def validar_dados(
-        registros: list[RegistroCaged],
+    registros: list[RegistroCaged],
 ) -> tuple[
     list[RegistroCaged],
     list[dict],
 ]:
     """
-    Separa os registros válidos dos inválidos.
+    Valida registros antes da gravação no banco.
     """
 
     registros_validos = []
     registros_invalidos = []
 
     for indice, registro in enumerate(registros):
-
         erros = []
 
         competencia = str(registro["competencia"])
 
-        if (
-                len(competencia) != 6
-                or not competencia.isdigit()
-        ):
-            erros.append(
-                "Competência deve estar no formato YYYYMM."
-            )
+        if len(competencia) != 6 or not competencia.isdigit():
+            erros.append("Competência deve estar no formato YYYYMM.")
 
         if not registro.get("setor"):
-            erros.append(
-                "Setor não informado."
-            )
+            erros.append("Setor não informado.")
 
         for campo in (
-                "admissoes",
-                "demissoes",
-                "saldo",
+            "admissoes",
+            "demissoes",
+            "saldo",
         ):
             valor = registro.get(campo)
 
             if not isinstance(valor, int):
-                erros.append(
-                    f"{campo} deve ser numérico."
-                )
+                erros.append(f"{campo} deve ser numérico.")
                 continue
 
             if valor < 0:
-                erros.append(
-                    f"{campo} não pode ser negativo."
-                )
+                erros.append(f"{campo} não pode ser negativo.")
 
         if erros:
             registro_invalido = registro.copy()
+
             registro_invalido["_erros"] = erros
             registro_invalido["_linha"] = indice
 
@@ -140,4 +123,7 @@ def validar_dados(
         else:
             registros_validos.append(registro)
 
-    return registros_validos, registros_invalidos
+    return (
+        registros_validos,
+        registros_invalidos,
+    )

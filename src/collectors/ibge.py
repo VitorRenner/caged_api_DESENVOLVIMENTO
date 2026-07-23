@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import requests
 
@@ -21,9 +22,9 @@ class IBGECollector(BaseCollector):
         )
 
     def _buscar_json(
-            self,
-            url: str,
-    ) -> dict:
+        self,
+        url: str,
+    ) -> dict[str, Any]:
         """
         Realiza uma requisição GET e retorna o JSON da resposta.
         """
@@ -36,48 +37,38 @@ class IBGECollector(BaseCollector):
         try:
             response = self.session.get(
                 url,
-                timeout=self.DEFAULT_TIMEOUT,
+                timeout=self.REQUEST_TIMEOUT_SECONDS,
             )
 
             response.raise_for_status()
 
-            logger.info(
-                "Requisição realizada com sucesso."
-            )
+            logger.info("Requisição realizada com sucesso.")
 
             return response.json()
 
         except (
-                requests.RequestException,
-                ValueError,
+            requests.RequestException,
+            ValueError,
         ) as erro:
-            raise RuntimeError(
-                f"Erro ao acessar a API do IBGE: {erro}"
-            ) from erro
+            raise RuntimeError(f"Erro ao acessar a API do IBGE: {erro}") from erro
 
     def coletar(
-            self,
-            endpoint: str = "municipios",
-    ) -> dict:
+        self,
+        endpoint: str = "municipios",
+    ) -> dict[str, Any]:
         """
         Coleta dados da API do IBGE.
         """
 
-        url = (
-            f"{self.base_url}"
-            f"/localidades/estados/SC/{endpoint}"
-        )
+        url = f"{self.base_url}/localidades/estados/SC/{endpoint}"
 
         return self._buscar_json(url)
 
-    def buscar_joinville(self) -> dict:
+    def buscar_joinville(self) -> dict[str, Any]:
         """
         Busca as informações de Joinville.
         """
 
-        url = (
-            f"{self.base_url}"
-            f"/localidades/municipios/{CODIGO_JOINVILLE}"
-        )
+        url = f"{self.base_url}/localidades/municipios/{CODIGO_JOINVILLE}"
 
         return self._buscar_json(url)

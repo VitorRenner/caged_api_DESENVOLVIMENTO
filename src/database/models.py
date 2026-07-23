@@ -9,7 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.sql import func
 
-from database import Base
+from src.database.conexao import Base
 
 
 class CagedMovimentacao(Base):
@@ -88,21 +88,16 @@ class CagedMovimentacao(Base):
             "admissoes": self.admissoes,
             "demissoes": self.demissoes,
             "saldo": self.saldo,
-            "criado_em": (
-                self.criado_em.isoformat()
-                if self.criado_em
-                else None
-            ),
+            "criado_em": (self.criado_em.isoformat() if self.criado_em else None),
             "atualizado_em": (
-                self.atualizado_em.isoformat()
-                if self.atualizado_em
-                else None
+                self.atualizado_em.isoformat() if self.atualizado_em else None
             ),
         }
 
     def __repr__(self) -> str:
         return (
             f"CagedMovimentacao("
+            f"id={self.id}, "
             f"competencia='{self.competencia}', "
             f"setor='{self.setor}')"
         )
