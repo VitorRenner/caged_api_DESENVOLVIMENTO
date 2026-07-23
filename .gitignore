@@ -12,6 +12,7 @@ __pycache__/
 
 # IntelliJ
 .idea/
+*.iml
 
 # Windows
 Thumbs.db
